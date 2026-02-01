@@ -958,6 +958,7 @@
         "pages": [
           "gateway/index",
           "gateway/protocol",
+          "gateway/wallet",
           "gateway/bridge-protocol",
           "gateway/pairing",
           "gateway/gateway-lock",

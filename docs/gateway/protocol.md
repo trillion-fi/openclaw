@@ -175,6 +175,11 @@ The Gateway treats these as **claims** and enforces server-side allowlists.
 - When an exec request needs approval, the gateway broadcasts `exec.approval.requested`.
 - Operator clients resolve by calling `exec.approval.resolve` (requires `operator.approvals` scope).
 
+## Wallet approvals
+
+- When a wallet request needs approval, the gateway broadcasts `wallet.approval.requested`.
+- Operator clients resolve by calling `wallet.approval.resolve` (requires `operator.approvals` scope).
+
 ## Versioning
 
 - `PROTOCOL_VERSION` lives in `src/gateway/protocol/schema.ts`.
