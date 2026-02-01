@@ -15,7 +15,7 @@ import { loadDevices } from "./controllers/devices";
 import { loadExecApprovals } from "./controllers/exec-approvals";
 import { loadLogs } from "./controllers/logs";
 import { loadNodes } from "./controllers/nodes";
-import { loadWalletEvmStatus } from "./controllers/wallet";
+import { loadWalletEvmStatus, loadWalletSolanaStatus } from "./controllers/wallet";
 import { loadPresence } from "./controllers/presence";
 import { loadSessions } from "./controllers/sessions";
 import { loadSkills } from "./controllers/skills";
@@ -153,7 +153,10 @@ export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTra
 export async function refreshActiveTab(host: SettingsHost) {
   if (host.tab === "overview") await loadOverview(host);
   if (host.tab === "channels") await loadChannelsTab(host);
-  if (host.tab === "wallet") await loadWalletEvmStatus(host as unknown as OpenClawApp);
+  if (host.tab === "wallet") {
+    const app = host as unknown as OpenClawApp;
+    await Promise.all([loadWalletEvmStatus(app), loadWalletSolanaStatus(app)]);
+  }
   if (host.tab === "instances") await loadPresence(host as unknown as OpenClawApp);
   if (host.tab === "sessions") await loadSessions(host as unknown as OpenClawApp);
   if (host.tab === "cron") await loadCron(host);

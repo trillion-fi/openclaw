@@ -4,7 +4,7 @@ import type { EventLogEntry } from "./app-events";
 import type { DevicePairingList } from "./controllers/devices";
 import type { ExecApprovalRequest } from "./controllers/exec-approval";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals";
-import type { WalletEvmStatus } from "./controllers/wallet";
+import type { WalletEvmStatus, WalletSolanaStatus } from "./controllers/wallet";
 import type { WalletApprovalRequest } from "./controllers/wallet-approval";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway";
 import type { Tab } from "./navigation";
@@ -79,6 +79,10 @@ import {
   loadWalletEvmStatus,
   lockWalletEvm,
   unlockWalletEvm,
+  initWalletSolana,
+  loadWalletSolanaStatus,
+  lockWalletSolana,
+  unlockWalletSolana,
 } from "./controllers/wallet";
 import { loadSettings, type UiSettings } from "./storage";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types";
@@ -163,6 +167,13 @@ export class OpenClawApp extends LitElement {
   @state() walletEvmInitPassword = "";
   @state() walletEvmInitPasswordConfirm = "";
   @state() walletEvmUnlockPassword = "";
+  @state() walletSolanaLoading = false;
+  @state() walletSolanaBusy = false;
+  @state() walletSolanaStatus: WalletSolanaStatus | null = null;
+  @state() walletSolanaError: string | null = null;
+  @state() walletSolanaInitPassword = "";
+  @state() walletSolanaInitPasswordConfirm = "";
+  @state() walletSolanaUnlockPassword = "";
   @state() walletApprovalQueue: WalletApprovalRequest[] = [];
   @state() walletApprovalBusy = false;
   @state() walletApprovalError: string | null = null;
@@ -441,10 +452,10 @@ export class OpenClawApp extends LitElement {
   }
 
   async handleWalletLoad() {
-    await loadWalletEvmStatus(this);
+    await Promise.all([loadWalletEvmStatus(this), loadWalletSolanaStatus(this)]);
   }
 
-  async handleWalletInit() {
+  async handleWalletEvmInit() {
     if (this.walletEvmInitPassword !== this.walletEvmInitPasswordConfirm) {
       this.walletEvmError = "Passwords do not match.";
       return;
@@ -457,15 +468,39 @@ export class OpenClawApp extends LitElement {
     }
   }
 
-  async handleWalletUnlock() {
+  async handleWalletEvmUnlock() {
     await unlockWalletEvm(this, this.walletEvmUnlockPassword);
     if (!this.walletEvmError) {
       this.walletEvmUnlockPassword = "";
     }
   }
 
-  async handleWalletLock() {
+  async handleWalletEvmLock() {
     await lockWalletEvm(this);
+  }
+
+  async handleWalletSolanaInit() {
+    if (this.walletSolanaInitPassword !== this.walletSolanaInitPasswordConfirm) {
+      this.walletSolanaError = "Passwords do not match.";
+      return;
+    }
+    await initWalletSolana(this, this.walletSolanaInitPassword);
+    if (!this.walletSolanaError) {
+      this.walletSolanaInitPassword = "";
+      this.walletSolanaInitPasswordConfirm = "";
+      this.walletSolanaUnlockPassword = "";
+    }
+  }
+
+  async handleWalletSolanaUnlock() {
+    await unlockWalletSolana(this, this.walletSolanaUnlockPassword);
+    if (!this.walletSolanaError) {
+      this.walletSolanaUnlockPassword = "";
+    }
+  }
+
+  async handleWalletSolanaLock() {
+    await lockWalletSolana(this);
   }
 
   async handleWalletApprovalDecision(decision: "approve" | "deny") {

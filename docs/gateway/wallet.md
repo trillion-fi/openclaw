@@ -1,17 +1,17 @@
 ---
-summary: "Gateway-native EVM wallet with approval-gated message signing"
+summary: "Gateway-native wallet (EVM + Solana) with approval-gated message signing"
 read_when:
-  - You want the Gateway to hold an EVM key
+  - You want the Gateway to hold an EVM or Solana key
   - You want approval-gated message signing
   - You want to forward wallet approvals into chat
 title: "Gateway Wallet"
 ---
 
-# Gateway wallet (EVM)
+# Gateway wallet
 
-OpenClaw includes a **Gateway-native EVM wallet** intended for small, high-trust operations that
-benefit from having a stable key available on the Gateway host (for example, signing an EIP-191
-message).
+OpenClaw includes a **Gateway-native wallet** intended for small, high-trust operations that
+benefit from having stable keys available on the Gateway host (for example, signing an EIP-191
+message on EVM, or a standard message signature on Solana).
 
 This wallet is:
 
@@ -21,9 +21,10 @@ This wallet is:
 
 ## Storage and persistence
 
-The EVM keystore is stored under the state directory:
+The keystores are stored under the state directory:
 
-- Path: `$OPENCLAW_STATE_DIR/wallets/evm/default.json`
+- EVM: `$OPENCLAW_STATE_DIR/wallets/evm/default.json`
+- Solana: `$OPENCLAW_STATE_DIR/wallets/solana/default.json`
 
 Notes:
 
@@ -35,9 +36,9 @@ Notes:
 
 The browser Control UI includes a **Wallet** tab:
 
-- Create a wallet (one-time initialization)
-- Unlock and lock the wallet
-- View the wallet address
+- Create wallets (one-time initialization per chain)
+- Unlock and lock wallets
+- View wallet addresses
 
 When a signing request is pending, the Control UI also shows a **wallet approval prompt** with
 Approve and Deny actions.
@@ -48,12 +49,18 @@ See: [Control UI](/web/control-ui)
 
 Wallet operations are exposed over the Gateway WebSocket protocol:
 
-- `wallet.evm.status` (read) returns whether a wallet exists and whether it is locked
-- `wallet.evm.init` (write) creates a new random wallet and writes the encrypted keystore
-- `wallet.evm.unlock` (write) decrypts the keystore and keeps the signer in memory
-  - optional: `ttlMs` to control auto-lock (default is about 10 minutes)
-- `wallet.evm.lock` (write) clears the in-memory signer immediately
-- `wallet.evm.signMessage` (write) signs an EIP-191 message **after approval**
+- EVM:
+  - `wallet.evm.status` (read)
+  - `wallet.evm.init` (write)
+  - `wallet.evm.unlock` (write, optional `ttlMs`)
+  - `wallet.evm.lock` (write)
+  - `wallet.evm.signMessage` (write, approval-gated)
+- Solana:
+  - `wallet.solana.status` (read)
+  - `wallet.solana.init` (write)
+  - `wallet.solana.unlock` (write, optional `ttlMs`)
+  - `wallet.solana.lock` (write)
+  - `wallet.solana.signMessage` (write, approval-gated)
 
 This feature introduces the wallet approval flow:
 
@@ -65,7 +72,7 @@ See: [Gateway protocol](/gateway/protocol)
 
 ## Approval flow
 
-`wallet.evm.signMessage` always creates an approval request:
+`wallet.<chain>.signMessage` always creates an approval request:
 
 1. Gateway broadcasts `wallet.approval.requested` to operator clients with `operator.approvals`.
 2. An operator resolves it by calling `wallet.approval.resolve` (or via a UI surface).
@@ -74,7 +81,7 @@ See: [Gateway protocol](/gateway/protocol)
 
 Wallet approvals are designed so the message is visible to the operator before signing:
 
-- `messageHash` is included (EIP-191 `hashMessage`)
+- `messageHash` is included (EVM uses EIP-191 `hashMessage`; Solana uses `sha256:<hex>`)
 - `messagePreview` is included (truncated)
 
 ## Forwarding wallet approvals to chat
@@ -115,11 +122,10 @@ Only **authorized senders** can resolve approvals from chat.
 
 ## Agent tool
 
-Agents can use the built-in tool `evm_wallet`:
+Agents can use the built-in tool `wallet`:
 
-- `action: "status"` reads wallet status
-- `action: "signMessage"` requests an approval-gated signature
+- `action: "status"` reads wallet status (optionally pass `chain`)
+- `action: "signMessage"` requests an approval-gated signature (requires `chain`)
 
 For best routing when approvals are forwarded to chat, include `sessionKey` and `agentId` in the
 `signMessage` tool call so the gateway can map the approval to the correct conversation.
-

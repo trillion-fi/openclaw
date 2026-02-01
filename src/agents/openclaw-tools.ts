@@ -7,7 +7,7 @@ import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createBrowserTool } from "./tools/browser-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
 import { createCronTool } from "./tools/cron-tool.js";
-import { createEvmWalletTool } from "./tools/evm-wallet-tool.js";
+import { createWalletTool } from "./tools/wallet-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
@@ -102,7 +102,7 @@ export function createOpenClawTools(options?: {
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
     }),
-    createEvmWalletTool({
+    createWalletTool({
       agentSessionKey: options?.agentSessionKey,
       agentId: resolveSessionAgentId({
         sessionKey: options?.agentSessionKey,

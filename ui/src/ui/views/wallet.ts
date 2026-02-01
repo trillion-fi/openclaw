@@ -1,13 +1,17 @@
 import { html, nothing } from "lit";
 
 import { formatMs } from "../format";
-import type { WalletEvmStatus } from "../controllers/wallet";
+import type { WalletEvmStatus, WalletSolanaStatus } from "../controllers/wallet";
 
-export type WalletProps = {
+type WalletChainStatus = WalletEvmStatus | WalletSolanaStatus;
+
+export type WalletChainProps = {
+  title: string;
+  subtitle: string;
   connected: boolean;
   loading: boolean;
   busy: boolean;
-  status: WalletEvmStatus | null;
+  status: WalletChainStatus | null;
   error: string | null;
   initPassword: string;
   initPasswordConfirm: string;
@@ -21,7 +25,12 @@ export type WalletProps = {
   onLock: () => void;
 };
 
-export function renderWallet(props: WalletProps) {
+export type WalletProps = {
+  evm: WalletChainProps;
+  solana: WalletChainProps;
+};
+
+function renderWalletChain(props: WalletChainProps) {
   const status = props.status;
   const hasWallet = status?.exists === true;
   const address = status?.address ?? null;
@@ -45,8 +54,8 @@ export function renderWallet(props: WalletProps) {
   return html`
     <section class="grid grid-cols-2">
       <div class="card">
-        <div class="card-title">Wallet</div>
-        <div class="card-sub">Gateway-native EVM wallet (encrypted at rest).</div>
+        <div class="card-title">${props.title}</div>
+        <div class="card-sub">${props.subtitle}</div>
 
         <div style="margin-top: 14px;">
           <div class="pill ${hasWallet ? "ok" : ""}">
@@ -156,3 +165,10 @@ export function renderWallet(props: WalletProps) {
   `;
 }
 
+export function renderWallet(props: WalletProps) {
+  return html`
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      ${renderWalletChain(props.evm)} ${renderWalletChain(props.solana)}
+    </div>
+  `;
+}

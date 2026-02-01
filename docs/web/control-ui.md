@@ -41,7 +41,7 @@ Auth is supplied during the WebSocket handshake via:
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
 - Nodes: list + caps (`node.list`)
 - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`)
-- Wallet: create/unlock/lock the gateway-native EVM wallet and resolve signature prompts (`wallet.*`)
+- Wallet: create/unlock/lock the gateway-native wallets (EVM + Solana) and resolve signature prompts (`wallet.*`)
 - Config: view/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`)
 - Config: apply + restart with validation (`config.apply`) and wake the last active session
 - Config writes include a base-hash guard to prevent clobbering concurrent edits

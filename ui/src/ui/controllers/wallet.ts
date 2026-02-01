@@ -7,6 +7,13 @@ export type WalletEvmStatus = {
   unlockedUntilMs: number | null;
 };
 
+export type WalletSolanaStatus = {
+  exists: boolean;
+  address: string | null;
+  locked: boolean;
+  unlockedUntilMs: number | null;
+};
+
 export type WalletState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
@@ -14,6 +21,10 @@ export type WalletState = {
   walletEvmBusy: boolean;
   walletEvmStatus: WalletEvmStatus | null;
   walletEvmError: string | null;
+  walletSolanaLoading: boolean;
+  walletSolanaBusy: boolean;
+  walletSolanaStatus: WalletSolanaStatus | null;
+  walletSolanaError: string | null;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -21,6 +32,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function parseWalletEvmStatus(value: unknown): WalletEvmStatus | null {
+  if (!isRecord(value)) return null;
+  const exists = value.exists === true;
+  const address = typeof value.address === "string" ? value.address : null;
+  const locked = value.locked === true;
+  const unlockedUntilMs = typeof value.unlockedUntilMs === "number" ? value.unlockedUntilMs : null;
+  return { exists, address, locked, unlockedUntilMs };
+}
+
+function parseWalletSolanaStatus(value: unknown): WalletSolanaStatus | null {
   if (!isRecord(value)) return null;
   const exists = value.exists === true;
   const address = typeof value.address === "string" ? value.address : null;
@@ -89,3 +109,62 @@ export async function lockWalletEvm(state: WalletState) {
   }
 }
 
+export async function loadWalletSolanaStatus(state: WalletState) {
+  if (!state.client || !state.connected) return;
+  if (state.walletSolanaLoading) return;
+  state.walletSolanaLoading = true;
+  state.walletSolanaError = null;
+  try {
+    const res = await state.client.request("wallet.solana.status", {});
+    state.walletSolanaStatus = parseWalletSolanaStatus(res);
+  } catch (err) {
+    state.walletSolanaError = String(err);
+  } finally {
+    state.walletSolanaLoading = false;
+  }
+}
+
+export async function initWalletSolana(state: WalletState, password: string) {
+  if (!state.client || !state.connected) return;
+  if (state.walletSolanaBusy) return;
+  state.walletSolanaBusy = true;
+  state.walletSolanaError = null;
+  try {
+    await state.client.request("wallet.solana.init", { password });
+    await loadWalletSolanaStatus(state);
+  } catch (err) {
+    state.walletSolanaError = String(err);
+  } finally {
+    state.walletSolanaBusy = false;
+  }
+}
+
+export async function unlockWalletSolana(state: WalletState, password: string) {
+  if (!state.client || !state.connected) return;
+  if (state.walletSolanaBusy) return;
+  state.walletSolanaBusy = true;
+  state.walletSolanaError = null;
+  try {
+    await state.client.request("wallet.solana.unlock", { password });
+    await loadWalletSolanaStatus(state);
+  } catch (err) {
+    state.walletSolanaError = String(err);
+  } finally {
+    state.walletSolanaBusy = false;
+  }
+}
+
+export async function lockWalletSolana(state: WalletState) {
+  if (!state.client || !state.connected) return;
+  if (state.walletSolanaBusy) return;
+  state.walletSolanaBusy = true;
+  state.walletSolanaError = null;
+  try {
+    await state.client.request("wallet.solana.lock", {});
+    await loadWalletSolanaStatus(state);
+  } catch (err) {
+    state.walletSolanaError = String(err);
+  } finally {
+    state.walletSolanaBusy = false;
+  }
+}

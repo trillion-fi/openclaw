@@ -177,7 +177,7 @@ The Gateway treats these as **claims** and enforces server-side allowlists.
 
 ## Wallet approvals
 
-- When a wallet request needs approval, the gateway broadcasts `wallet.approval.requested`.
+- When a wallet signing request needs approval (EVM or Solana), the gateway broadcasts `wallet.approval.requested`.
 - Operator clients resolve by calling `wallet.approval.resolve` (requires `operator.approvals` scope).
 
 ## Versioning

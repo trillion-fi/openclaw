@@ -52,6 +52,7 @@ import { coreGatewayHandlers } from "./server-methods.js";
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { createWalletApprovalHandlers } from "./server-methods/wallet-approval.js";
 import { createWalletEvmHandlers } from "./server-methods/wallet-evm.js";
+import { createWalletSolanaHandlers } from "./server-methods/wallet-solana.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
@@ -76,6 +77,7 @@ import {
 import { loadGatewayTlsRuntime } from "./server/tls.js";
 import { WalletApprovalManager } from "./wallet-approval-manager.js";
 import { EvmWalletService } from "../wallet/evm-wallet-service.js";
+import { SolanaWalletService } from "../wallet/solana-wallet-service.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -428,12 +430,17 @@ export async function startGatewayServer(
   });
 
   const evmWallet = new EvmWalletService({ stateDir: resolveStateDir(process.env) });
+  const solanaWallet = new SolanaWalletService({ stateDir: resolveStateDir(process.env) });
   const walletApprovalManager = new WalletApprovalManager();
   const walletApprovalForwarder = createWalletApprovalForwarder();
   const walletApprovalHandlers = createWalletApprovalHandlers(walletApprovalManager, {
     forwarder: walletApprovalForwarder,
   });
   const walletEvmHandlers = createWalletEvmHandlers(evmWallet, {
+    approvals: walletApprovalManager,
+    forwarder: walletApprovalForwarder,
+  });
+  const walletSolanaHandlers = createWalletSolanaHandlers(solanaWallet, {
     approvals: walletApprovalManager,
     forwarder: walletApprovalForwarder,
   });
@@ -457,6 +464,7 @@ export async function startGatewayServer(
       ...pluginRegistry.gatewayHandlers,
       ...execApprovalHandlers,
       ...walletEvmHandlers,
+      ...walletSolanaHandlers,
       ...walletApprovalHandlers,
     },
     broadcast,

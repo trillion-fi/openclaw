@@ -77,6 +77,7 @@ const READ_METHODS = new Set([
   "node.describe",
   "chat.history",
   "wallet.evm.status",
+  "wallet.solana.status",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -97,6 +98,10 @@ const WRITE_METHODS = new Set([
   "wallet.evm.unlock",
   "wallet.evm.lock",
   "wallet.evm.signMessage",
+  "wallet.solana.init",
+  "wallet.solana.unlock",
+  "wallet.solana.lock",
+  "wallet.solana.signMessage",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {

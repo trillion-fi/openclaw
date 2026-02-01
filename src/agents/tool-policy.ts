@@ -8,6 +8,7 @@ type ToolProfilePolicy = {
 const TOOL_NAME_ALIASES: Record<string, string> = {
   bash: "exec",
   "apply-patch": "apply_patch",
+  evm_wallet: "wallet",
 };
 
 export const TOOL_GROUPS: Record<string, string[]> = {
@@ -42,7 +43,7 @@ export const TOOL_GROUPS: Record<string, string[]> = {
     "cron",
     "message",
     "gateway",
-    "evm_wallet",
+    "wallet",
     "agents_list",
     "sessions_list",
     "sessions_history",
@@ -59,15 +60,15 @@ export const TOOL_GROUPS: Record<string, string[]> = {
 
 const TOOL_PROFILES: Record<ToolProfileId, ToolProfilePolicy> = {
   minimal: {
-    allow: ["session_status", "evm_wallet"],
+    allow: ["session_status", "wallet"],
   },
   coding: {
-    allow: ["group:fs", "group:runtime", "group:sessions", "group:memory", "image", "evm_wallet"],
+    allow: ["group:fs", "group:runtime", "group:sessions", "group:memory", "image", "wallet"],
   },
   messaging: {
     allow: [
       "group:messaging",
-      "evm_wallet",
+      "wallet",
       "sessions_list",
       "sessions_history",
       "sessions_send",
