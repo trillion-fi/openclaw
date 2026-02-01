@@ -80,6 +80,7 @@ import { renderConfig } from "./views/config";
 import { renderCron } from "./views/cron";
 import { renderDebug } from "./views/debug";
 import { renderExecApprovalPrompt } from "./views/exec-approval";
+import { renderWalletApprovalPrompt } from "./views/wallet-approval";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation";
 import { renderInstances } from "./views/instances";
 import { renderLogs } from "./views/logs";
@@ -87,6 +88,7 @@ import { renderNodes } from "./views/nodes";
 import { renderOverview } from "./views/overview";
 import { renderSessions } from "./views/sessions";
 import { renderSkills } from "./views/skills";
+import { renderWallet } from "./views/wallet";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -273,6 +275,28 @@ export function renderApp(state: AppViewState) {
                 onNostrProfileSave: () => state.handleNostrProfileSave(),
                 onNostrProfileImport: () => state.handleNostrProfileImport(),
                 onNostrProfileToggleAdvanced: () => state.handleNostrProfileToggleAdvanced(),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "wallet"
+            ? renderWallet({
+                connected: state.connected,
+                loading: state.walletEvmLoading,
+                busy: state.walletEvmBusy,
+                status: state.walletEvmStatus,
+                error: state.walletEvmError,
+                initPassword: state.walletEvmInitPassword,
+                initPasswordConfirm: state.walletEvmInitPasswordConfirm,
+                unlockPassword: state.walletEvmUnlockPassword,
+                onRefresh: () => state.handleWalletLoad(),
+                onInitPasswordChange: (next) => (state.walletEvmInitPassword = next),
+                onInitPasswordConfirmChange: (next) => (state.walletEvmInitPasswordConfirm = next),
+                onUnlockPasswordChange: (next) => (state.walletEvmUnlockPassword = next),
+                onInit: () => state.handleWalletInit(),
+                onUnlock: () => state.handleWalletUnlock(),
+                onLock: () => state.handleWalletLock(),
               })
             : nothing
         }
@@ -600,6 +624,7 @@ export function renderApp(state: AppViewState) {
         }
       </main>
       ${renderExecApprovalPrompt(state)}
+      ${renderWalletApprovalPrompt(state)}
       ${renderGatewayUrlConfirmation(state)}
     </div>
   `;

@@ -1,6 +1,7 @@
 import type { OpenClawApp } from "./app";
 import type { EventLogEntry } from "./app-events";
 import type { ExecApprovalRequest } from "./controllers/exec-approval";
+import type { WalletApprovalRequest } from "./controllers/wallet-approval";
 import type { GatewayEventFrame, GatewayHelloOk } from "./gateway";
 import type { Tab } from "./navigation";
 import type { UiSettings } from "./storage";
@@ -19,6 +20,12 @@ import {
   parseExecApprovalResolved,
   removeExecApproval,
 } from "./controllers/exec-approval";
+import {
+  addWalletApproval,
+  parseWalletApprovalRequested,
+  parseWalletApprovalResolved,
+  removeWalletApproval,
+} from "./controllers/wallet-approval";
 import { loadNodes } from "./controllers/nodes";
 import { loadSessions } from "./controllers/sessions";
 import { GatewayBrowserClient } from "./gateway";
@@ -49,6 +56,8 @@ type GatewayHost = {
   refreshSessionsAfterChat: Set<string>;
   execApprovalQueue: ExecApprovalRequest[];
   execApprovalError: string | null;
+  walletApprovalQueue: WalletApprovalRequest[];
+  walletApprovalError: string | null;
 };
 
 type SessionDefaultsSnapshot = {
@@ -110,6 +119,8 @@ export function connectGateway(host: GatewayHost) {
   host.connected = false;
   host.execApprovalQueue = [];
   host.execApprovalError = null;
+  host.walletApprovalQueue = [];
+  host.walletApprovalError = null;
 
   host.client?.stop();
   host.client = new GatewayBrowserClient({
@@ -237,6 +248,26 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
     const resolved = parseExecApprovalResolved(evt.payload);
     if (resolved) {
       host.execApprovalQueue = removeExecApproval(host.execApprovalQueue, resolved.id);
+    }
+  }
+
+  if (evt.event === "wallet.approval.requested") {
+    const entry = parseWalletApprovalRequested(evt.payload);
+    if (entry) {
+      host.walletApprovalQueue = addWalletApproval(host.walletApprovalQueue, entry);
+      host.walletApprovalError = null;
+      const delay = Math.max(0, entry.expiresAtMs - Date.now() + 500);
+      window.setTimeout(() => {
+        host.walletApprovalQueue = removeWalletApproval(host.walletApprovalQueue, entry.id);
+      }, delay);
+    }
+    return;
+  }
+
+  if (evt.event === "wallet.approval.resolved") {
+    const resolved = parseWalletApprovalResolved(evt.payload);
+    if (resolved) {
+      host.walletApprovalQueue = removeWalletApproval(host.walletApprovalQueue, resolved.id);
     }
   }
 }

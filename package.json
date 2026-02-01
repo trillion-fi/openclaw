@@ -176,6 +176,7 @@
     "croner": "^9.1.0",
     "discord-api-types": "^0.38.38",
     "dotenv": "^17.2.3",
+    "ethers": "^6.16.0",
     "express": "^5.2.1",
     "file-type": "^21.3.0",
     "grammy": "^1.39.3",

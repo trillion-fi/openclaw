@@ -4,6 +4,8 @@ import type { EventLogEntry } from "./app-events";
 import type { DevicePairingList } from "./controllers/devices";
 import type { ExecApprovalRequest } from "./controllers/exec-approval";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals";
+import type { WalletEvmStatus } from "./controllers/wallet";
+import type { WalletApprovalRequest } from "./controllers/wallet-approval";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway";
 import type { Tab } from "./navigation";
 import type { ResolvedTheme, ThemeMode } from "./theme";
@@ -72,6 +74,12 @@ import {
 } from "./app-tool-stream";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity";
+import {
+  initWalletEvm,
+  loadWalletEvmStatus,
+  lockWalletEvm,
+  unlockWalletEvm,
+} from "./controllers/wallet";
 import { loadSettings, type UiSettings } from "./storage";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types";
 
@@ -148,6 +156,16 @@ export class OpenClawApp extends LitElement {
   @state() execApprovalQueue: ExecApprovalRequest[] = [];
   @state() execApprovalBusy = false;
   @state() execApprovalError: string | null = null;
+  @state() walletEvmLoading = false;
+  @state() walletEvmBusy = false;
+  @state() walletEvmStatus: WalletEvmStatus | null = null;
+  @state() walletEvmError: string | null = null;
+  @state() walletEvmInitPassword = "";
+  @state() walletEvmInitPasswordConfirm = "";
+  @state() walletEvmUnlockPassword = "";
+  @state() walletApprovalQueue: WalletApprovalRequest[] = [];
+  @state() walletApprovalBusy = false;
+  @state() walletApprovalError: string | null = null;
   @state() pendingGatewayUrl: string | null = null;
 
   @state() configLoading = false;
@@ -419,6 +437,52 @@ export class OpenClawApp extends LitElement {
       this.execApprovalError = `Exec approval failed: ${String(err)}`;
     } finally {
       this.execApprovalBusy = false;
+    }
+  }
+
+  async handleWalletLoad() {
+    await loadWalletEvmStatus(this);
+  }
+
+  async handleWalletInit() {
+    if (this.walletEvmInitPassword !== this.walletEvmInitPasswordConfirm) {
+      this.walletEvmError = "Passwords do not match.";
+      return;
+    }
+    await initWalletEvm(this, this.walletEvmInitPassword);
+    if (!this.walletEvmError) {
+      this.walletEvmInitPassword = "";
+      this.walletEvmInitPasswordConfirm = "";
+      this.walletEvmUnlockPassword = "";
+    }
+  }
+
+  async handleWalletUnlock() {
+    await unlockWalletEvm(this, this.walletEvmUnlockPassword);
+    if (!this.walletEvmError) {
+      this.walletEvmUnlockPassword = "";
+    }
+  }
+
+  async handleWalletLock() {
+    await lockWalletEvm(this);
+  }
+
+  async handleWalletApprovalDecision(decision: "approve" | "deny") {
+    const active = this.walletApprovalQueue[0];
+    if (!active || !this.client || this.walletApprovalBusy) return;
+    this.walletApprovalBusy = true;
+    this.walletApprovalError = null;
+    try {
+      await this.client.request("wallet.approval.resolve", {
+        id: active.id,
+        decision,
+      });
+      this.walletApprovalQueue = this.walletApprovalQueue.filter((entry) => entry.id !== active.id);
+    } catch (err) {
+      this.walletApprovalError = `Wallet approval failed: ${String(err)}`;
+    } finally {
+      this.walletApprovalBusy = false;
     }
   }
 

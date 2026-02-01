@@ -23,6 +23,12 @@ export const icons = {
       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   `,
+  wallet: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" />
+      <path d="M16 12h6v4h-6a2 2 0 0 1 0-4Z" />
+    </svg>
+  `,
   radio: html`
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="2" />

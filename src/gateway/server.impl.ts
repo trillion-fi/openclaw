@@ -16,11 +16,13 @@ import {
   readConfigFileSnapshot,
   writeConfigFile,
 } from "../config/config.js";
+import { resolveStateDir } from "../config/paths.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
+import { createWalletApprovalForwarder } from "../infra/wallet-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
@@ -48,6 +50,8 @@ import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
 import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
 import { coreGatewayHandlers } from "./server-methods.js";
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
+import { createWalletApprovalHandlers } from "./server-methods/wallet-approval.js";
+import { createWalletEvmHandlers } from "./server-methods/wallet-evm.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
@@ -70,6 +74,8 @@ import {
   refreshGatewayHealthSnapshot,
 } from "./server/health-state.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
+import { WalletApprovalManager } from "./wallet-approval-manager.js";
+import { EvmWalletService } from "../wallet/evm-wallet-service.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -421,6 +427,17 @@ export async function startGatewayServer(
     forwarder: execApprovalForwarder,
   });
 
+  const evmWallet = new EvmWalletService({ stateDir: resolveStateDir(process.env) });
+  const walletApprovalManager = new WalletApprovalManager();
+  const walletApprovalForwarder = createWalletApprovalForwarder();
+  const walletApprovalHandlers = createWalletApprovalHandlers(walletApprovalManager, {
+    forwarder: walletApprovalForwarder,
+  });
+  const walletEvmHandlers = createWalletEvmHandlers(evmWallet, {
+    approvals: walletApprovalManager,
+    forwarder: walletApprovalForwarder,
+  });
+
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
   attachGatewayWsHandlers({
@@ -439,6 +456,8 @@ export async function startGatewayServer(
     extraHandlers: {
       ...pluginRegistry.gatewayHandlers,
       ...execApprovalHandlers,
+      ...walletEvmHandlers,
+      ...walletApprovalHandlers,
     },
     broadcast,
     context: {

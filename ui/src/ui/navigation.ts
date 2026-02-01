@@ -4,7 +4,7 @@ export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "cron"],
+    tabs: ["overview", "channels", "wallet", "instances", "sessions", "cron"],
   },
   { label: "Agent", tabs: ["skills", "nodes"] },
   { label: "Settings", tabs: ["config", "debug", "logs"] },
@@ -13,6 +13,7 @@ export const TAB_GROUPS = [
 export type Tab =
   | "overview"
   | "channels"
+  | "wallet"
   | "instances"
   | "sessions"
   | "cron"
@@ -26,6 +27,7 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   overview: "/overview",
   channels: "/channels",
+  wallet: "/wallet",
   instances: "/instances",
   sessions: "/sessions",
   cron: "/cron",
@@ -106,6 +108,8 @@ export function iconForTab(tab: Tab): IconName {
       return "barChart";
     case "channels":
       return "link";
+    case "wallet":
+      return "wallet";
     case "instances":
       return "radio";
     case "sessions":
@@ -133,6 +137,8 @@ export function titleForTab(tab: Tab) {
       return "Overview";
     case "channels":
       return "Channels";
+    case "wallet":
+      return "Wallet";
     case "instances":
       return "Instances";
     case "sessions":
@@ -162,6 +168,8 @@ export function subtitleForTab(tab: Tab) {
       return "Gateway status, entry points, and a fast health read.";
     case "channels":
       return "Manage channels and settings.";
+    case "wallet":
+      return "Gateway-native wallet, encrypted at rest.";
     case "instances":
       return "Presence beacons from connected clients and nodes.";
     case "sessions":
