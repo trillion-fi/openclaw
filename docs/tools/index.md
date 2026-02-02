@@ -36,9 +36,9 @@ Per-agent override: `agents.list[].tools.profile`.
 
 Profiles:
 
-- `minimal`: `session_status` only
-- `coding`: `group:fs`, `group:runtime`, `group:sessions`, `group:memory`, `image`
-- `messaging`: `group:messaging`, `sessions_list`, `sessions_history`, `sessions_send`, `session_status`
+- `minimal`: `session_status`, `wallet`
+- `coding`: `group:fs`, `group:runtime`, `group:sessions`, `group:memory`, `image`, `wallet`
+- `messaging`: `group:messaging`, `wallet`, `sessions_list`, `sessions_history`, `sessions_send`, `session_status`
 - `full`: no restriction (same as unset)
 
 Example (messaging-only by default, allow Slack + Discord tools too):
@@ -176,6 +176,12 @@ Optional plugin tools:
 - [LLM Task](/tools/llm-task): JSON-only LLM step for structured workflow output (optional schema validation).
 
 ## Tool inventory
+
+### `wallet`
+
+Read status and request an approval-gated message signature via the Gateway wallet.
+
+See: [Wallet Tool](/tools/wallet) and [Gateway wallet](/gateway/wallet).
 
 ### `apply_patch`
 
