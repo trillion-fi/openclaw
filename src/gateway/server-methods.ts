@@ -98,10 +98,12 @@ const WRITE_METHODS = new Set([
   "wallet.evm.unlock",
   "wallet.evm.lock",
   "wallet.evm.signMessage",
+  "wallet.evm.signTransaction",
   "wallet.solana.init",
   "wallet.solana.unlock",
   "wallet.solana.lock",
   "wallet.solana.signMessage",
+  "wallet.solana.signTransaction",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {

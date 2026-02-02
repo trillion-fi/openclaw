@@ -65,6 +65,39 @@ Approving can be done either:
 
 For chat-based approvals, include `sessionKey` and `agentId` so the gateway can route approval prompts back to the right conversation.
 
+### Sign transaction
+
+EVM: request an approval-gated transaction signature:
+
+```json
+{
+  "action": "signTransaction",
+  "chain": "evm",
+  "tx": {
+    "chainId": 1,
+    "to": "0x0000000000000000000000000000000000000000",
+    "value": "0",
+    "nonce": 0,
+    "gasLimit": "21000",
+    "maxFeePerGas": "2000000000",
+    "maxPriorityFeePerGas": "1000000000",
+    "data": "0x"
+  }
+}
+```
+
+Solana: request an approval-gated signature for a serialized transaction:
+
+```json
+{
+  "action": "signTransaction",
+  "chain": "solana",
+  "transactionBase64": "<base64 transaction bytes>"
+}
+```
+
+This always triggers a wallet approval and blocks until an operator approves, denies, or the request expires.
+
 ## Tool availability
 
 The tool list sent to the model is controlled by tool policy:
@@ -74,4 +107,3 @@ The tool list sent to the model is controlled by tool policy:
 - `tools.alsoAllow` adds tools on top of the profile
 
 If you are using a restrictive allowlist and want the wallet tool available everywhere, add it via `tools.alsoAllow: ["wallet"]`.
-

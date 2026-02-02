@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 import { Wallet } from "ethers";
+import type { TransactionRequest } from "ethers";
 
 import type { EvmKeystoreFile } from "./evm-keystore.js";
 import {
@@ -116,5 +117,10 @@ export class EvmWalletService {
   signMessage(params: { message: string }): Promise<string> {
     const signer = this.requireUnlocked();
     return signer.signMessage(params.message);
+  }
+
+  signTransaction(tx: TransactionRequest): Promise<string> {
+    const signer = this.requireUnlocked();
+    return signer.signTransaction(tx);
   }
 }

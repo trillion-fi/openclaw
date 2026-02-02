@@ -173,5 +173,9 @@ export class SolanaWalletService {
     const signature = crypto.sign(null, Buffer.from(params.message, "utf8"), signer.privateKey);
     return encodeBase58(signature);
   }
-}
 
+  signBytes(params: { bytes: Uint8Array }): Uint8Array {
+    const signer = this.requireUnlocked();
+    return crypto.sign(null, Buffer.from(params.bytes), signer.privateKey);
+  }
+}

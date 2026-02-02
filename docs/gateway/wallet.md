@@ -55,12 +55,14 @@ Wallet operations are exposed over the Gateway WebSocket protocol:
   - `wallet.evm.unlock` (write, optional `ttlMs`)
   - `wallet.evm.lock` (write)
   - `wallet.evm.signMessage` (write, approval-gated)
+  - `wallet.evm.signTransaction` (write, approval-gated)
 - Solana:
   - `wallet.solana.status` (read)
   - `wallet.solana.init` (write)
   - `wallet.solana.unlock` (write, optional `ttlMs`)
   - `wallet.solana.lock` (write)
   - `wallet.solana.signMessage` (write, approval-gated)
+  - `wallet.solana.signTransaction` (write, approval-gated)
 
 This feature introduces the wallet approval flow:
 
@@ -72,7 +74,7 @@ See: [Gateway protocol](/gateway/protocol)
 
 ## Approval flow
 
-`wallet.<chain>.signMessage` always creates an approval request:
+`wallet.<chain>.signMessage` and `wallet.<chain>.signTransaction` always create an approval request:
 
 1. Gateway broadcasts `wallet.approval.requested` to operator clients with `operator.approvals`.
 2. An operator resolves it by calling `wallet.approval.resolve` (or via a UI surface).
@@ -81,7 +83,11 @@ See: [Gateway protocol](/gateway/protocol)
 
 Wallet approvals are designed so the message is visible to the operator before signing:
 
-- `messageHash` is included (EVM uses EIP-191 `hashMessage`; Solana uses `sha256:<hex>`)
+- `messageHash` is included
+  - EVM `signMessage`: EIP-191 `hashMessage`
+  - EVM `signTransaction`: transaction `unsignedHash`
+  - Solana `signMessage`: `sha256:<hex>` of UTF-8 message bytes
+  - Solana `signTransaction`: `sha256:<hex>` of transaction message bytes
 - `messagePreview` is included (truncated)
 
 ## Forwarding wallet approvals to chat
@@ -126,6 +132,7 @@ Agents can use the built-in tool `wallet`:
 
 - `action: "status"` reads wallet status (optionally pass `chain`)
 - `action: "signMessage"` requests an approval-gated signature (requires `chain`)
+- `action: "signTransaction"` requests an approval-gated transaction signature (requires `chain`)
 
 For best routing when approvals are forwarded to chat, include `sessionKey` and `agentId` in the
-`signMessage` tool call so the gateway can map the approval to the correct conversation.
+`signMessage` / `signTransaction` tool call so the gateway can map the approval to the correct conversation.

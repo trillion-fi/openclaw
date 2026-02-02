@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 
 export type WalletApprovalDecision = "approve" | "deny";
 
-export type WalletApprovalKind = "evm.signMessage" | "solana.signMessage";
+export type WalletApprovalKind =
+  | "evm.signMessage"
+  | "evm.signTransaction"
+  | "solana.signMessage"
+  | "solana.signTransaction";
 
 export type WalletApprovalRequestPayload = {
   kind: WalletApprovalKind;
